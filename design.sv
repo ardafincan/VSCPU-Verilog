@@ -77,6 +77,16 @@ always @ * begin
 					addr_toRAM = data_fromRAM[27:14];
 					stN = 3'd2;
 				end
+				if(data_fromRAM[31:28] == 4'b1110) // MUL
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b1111) // MULi
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
                 if(data_fromRAM[31:28] == 4'b1000) // CP
 					begin
 					addr_toRAM = data_fromRAM[13:0];
@@ -133,6 +143,18 @@ always @ * begin
 					`INCPC;
 					stN = 3'd0;
 				end
+				if(data_fromRAM[31:28] == 4'b1110) begin // MUL
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b1111) begin // MULi
+					wrEn = 1
+					addr_toRAM = IW[27:14];
+					data_toRAM = data_fromRAM * IW[13:0];
+					`INCPC;
+					stN = 3'd0;
+				end
 				if (IW[31:28]==4'b1000) begin // CP
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
@@ -167,6 +189,13 @@ always @ * begin
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
 					data_toRAM = (R1 < data_fromRAM) ? 32'd1 : 32'd0;
+					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1110) begin // MUL
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = (R1 * data_fromRAM);
 					`INCPC;
 					stN = 3'd0;
 				end
