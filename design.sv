@@ -37,6 +37,16 @@ always @ * begin
             end
             3'd1: begin // S1: Decode State
                 IWN = data_fromRAM;	
+				if(data_fromRAM[31:28] == 4'b0000 && data_fromRAM[13] == 1'b1) // SUB
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b0001 && data_fromRAM[13] == 1'b1) // SUBi
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
 				if(data_fromRAM[31:28] == 4'b0000)// ADD
 					begin 
 					addr_toRAM = data_fromRAM[27:14];
@@ -94,6 +104,18 @@ always @ * begin
 				end
             end
             3'd2: begin // S2: Decode/Execute State
+				if(data_fromRAM[31:28] == 4'b0000 && data_fromRAM[13] == 1'b1) begin // SUB
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b0001 && data_fromRAM[13] == 1'b1) begin // SUBi
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = data_fromRAM - ~IW[13:0];
+					`INCPC;
+					stN = 3'd0;
+				end
 				if (IW[31:28] == 4'b0000) begin // ADD
 					R1N = data_fromRAM;
 					addr_toRAM = IW[13:0];
@@ -164,6 +186,13 @@ always @ * begin
 				end
             end
 			3'd3: begin // S3 Execute Extended
+				if(data_fromRAM[31:28] == 4'b0000 && data_fromRAM[13] == 1'b1) begin // SUB
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = R1 - ~data_fromRAM;
+					`INCPC;
+					stN = 3'd0;
+				end
 				if (IW[31:28] == 4'b0000) begin // ADD
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
