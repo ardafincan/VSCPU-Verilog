@@ -57,6 +57,26 @@ always @ * begin
 					addr_toRAM = data_fromRAM[27:14];
 					stN = 3'd2;
 				end
+				if(data_fromRAM[31:28] == 4'b0100) // SRL
+					begin 
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b0101) // SRLi
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b0110) // LT
+					begin 
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b0111) // LTi
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
                 if(data_fromRAM[31:28] == 4'b1000) // CP
 					begin
 					addr_toRAM = data_fromRAM[13:0];
@@ -89,6 +109,30 @@ always @ * begin
 					`INCPC;
 					stN = 3'd0;
 				end 
+				if(data_fromRAM[31:28] == 4'b0100) begin // SRL
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b0101) begin // SRLi
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = (IW[13:0] < 32) ? data_fromRAM[27:14] >> IW[13:0] : data_fromRAM[27:14] << (IW[13:0] - 32);
+					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b0110) begin // LT
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b0111) begin // LTi
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = (data_fromRAM < IW[13:0]) ? 32'd1 : 32'd0;
+					`INCPC;
+					stN = 3'd0;
+				end
 				if (IW[31:28]==4'b1000) begin // CP
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
@@ -112,6 +156,20 @@ always @ * begin
 					`INCPC;
 					stN = 3'd0;
 				end
+				if(data_fromRAM[31:28] == 4'b0100) begin // SRL
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = (data_fromRAM < 32) ? R1 >> data_fromRAM : R1 << (data_fromRAM - 32);
+					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b0110) begin // LT
+					wrEn = 1'b1;
+					addr_toRAM = IW[27:14];
+					data_toRAM = (R1 < data_fromRAM) ? 32'd1 : 32'd0;
+					`INCPC;
+					stN = 3'd0;
+				end
 			end
 
 endcase
@@ -130,8 +188,8 @@ module blram(clk, rst, we, addr, din, dout);
   output reg [31:0] dout;
   reg [31:0] mem [DEPTH-1:0];
   always @(posedge clk) begin
-  dout <= #1 mem[addr[SIZE-1:0]];
-  if (we)
-  mem[addr[SIZE-1:0]] <= #1 din;
-  end
+	  dout <= #1 mem[addr[SIZE-1:0]];
+	  if (we)
+		  mem[addr[SIZE-1:0]] <= #1 din;
+	  end
 endmodule
