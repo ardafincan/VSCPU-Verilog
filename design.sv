@@ -106,6 +106,7 @@ always @ * begin
 				end
 				if(data_fromRAM[31:28] == 4'b1001) // CPi
 					begin
+					wrEn = 1'b1;
 					addr_toRAM = data_fromRAM[27:14];
 					data_toRAM = data_fromRAM[13:0];
 					`INCPC;
@@ -179,7 +180,7 @@ always @ * begin
 				if(IW[31:28] == 4'b0101) begin // SRLi
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
-					data_toRAM = (IW[13:0] < 32) ? data_fromRAM[27:14] >> IW[13:0] : data_fromRAM[27:14] << (IW[13:0] - 32);
+					data_toRAM = (IW[13:0] < 32) ? data_fromRAM >> IW[13:0] : data_fromRAM << (IW[13:0] - 32);
 					`INCPC;
 					stN = 3'd0;
 				end
@@ -278,6 +279,7 @@ always @ * begin
 					stN = 3'd0;
 				end
 				if(IW[31:28] == 4'b1010) begin // CPI (Copy Indirect)
+					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
 					data_toRAM = data_fromRAM;
 					`INCPC;
