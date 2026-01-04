@@ -123,12 +123,12 @@ always @ * begin
 					stN = 3'd2;
 				end
 			// Decoding Program Control Instructions 
-				if(IW[31:28] == 4'b1100) // BZJ (Branch on Zero)
+				if(data_fromRAM[31:28] == 4'b1100) // BZJ (Branch on Zero)
 					begin
 					addr_toRAM = data_fromRAM[27:14];
 					stN = 3'd2;
 				end
-				if(IW[31:28] == 4'b1101) // BZJi (Unconditional Branch)
+				if(data_fromRAM[31:28] == 4'b1101) // BZJi (Unconditional Branch)
 					begin
 					addr_toRAM = data_fromRAM[27:14];
 					stN = 3'd2;
@@ -143,7 +143,7 @@ always @ * begin
 				if(IW[31:28] == 4'b0001 && data_fromRAM[13] == 1'b1) begin // SUBi
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
-					data_toRAM = data_fromRAM - ~IW[13:0];
+					data_toRAM = data_fromRAM - (~IW[13:0] + 1);
 					`INCPC;
 					stN = 3'd0;
 				end
@@ -230,16 +230,16 @@ always @ * begin
 					stN = 3'd3;
 				end
 				if(IW[31:28] == 4'b1101) begin // BZJi (Unconditional Branch)
-					R1N = data_fromRAM;
-					addr_toRAM = IW[13:0];
-					stN = 3'd3;
+					wrEn = 1'b1;
+					PCN = data_fromRAM + IW[13:0];
+					stN = 3'd0;
 				end
             end
 			3'd3: begin // S3 Execute Extended
 				if(IW[31:28] == 4'b0000 && data_fromRAM[13] == 1'b1) begin // SUB
 					wrEn = 1'b1;
 					addr_toRAM = IW[27:14];
-					data_toRAM = R1 - ~data_fromRAM;
+					data_toRAM = R1 - (~data_fromRAM + 1);
 					`INCPC;
 					stN = 3'd0;
 				end
@@ -294,10 +294,6 @@ always @ * begin
 				end
 				if(IW[31:28] == 4'b1100) begin // BZJ (Branch on Zero)
 					PCN = (data_fromRAM == 0) ? R1 : (PC + 1);
-					stN = 3'd0;
-				end
-				if(IW[31:28] == 4'b1101) begin // BZJi (Unconditional Branch)
-					PCN = R1 + data_fromRAM;
 					stN = 3'd0;
 				end
 			end
