@@ -162,7 +162,6 @@ always @ * begin
 				if (IW[31:28] == 4'b0010) begin // NAND
 					R1N = data_fromRAM;
 					addr_toRAM = IW[13:0];
-					`INCPC;
 					stN = 3'd3;
 				end
 				if (IW[31:28] == 4'b0011) begin // NANDi
