@@ -36,6 +36,7 @@ always @ * begin
 				stN = 3'd1;
             end
             3'd1: begin // S1: Decode State
+			// Decoding Arithmetic Instructions
                 IWN = data_fromRAM;	
 				if(data_fromRAM[31:28] == 4'b0000 && data_fromRAM[13] == 1'b1) // SUB
 					begin
@@ -96,10 +97,39 @@ always @ * begin
 					begin
 					addr_toRAM = data_fromRAM[27:14];
 					stN = 3'd2;
-				end
-                if(data_fromRAM[31:28] == 4'b1000) // CP
+				end 
+			// Decoding Data Transfer Instructions
+				if(data_fromRAM[31:28] == 4'b1000) // CP
 					begin
 					addr_toRAM = data_fromRAM[13:0];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b1001) // CPi
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					data_toRAM = data_fromRAM[13:0];
+					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1010) // CPI (Copy Indirect)
+					begin 
+					addr_toRAM = data_fromRAM[13:0];
+					stN = 3'd2;
+				end 
+				if(data_fromRAM[31:28] == 4'b1011) // CPIi 	
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+			// Decoding Program Control Instructions 
+				if(data_fromRAM[31:28] == 4'b1100) // BZJ (Branch on Zero)
+					begin
+					addr_toRAM = data_fromRAM[27:14];
+					stN = 3'd2;
+				end
+				if(data_fromRAM[31:28] == 4'b1101) // BZJi (Unconditional Branch)
+					begin
+					addr_toRAM = data_fromRAM[27:14];
 					stN = 3'd2;
 				end
             end
@@ -171,7 +201,7 @@ always @ * begin
 					stN = 3'd3;
 				end
 				if(data_fromRAM[31:28] == 4'b1111) begin // MULi
-					wrEn = 1
+					wrEn = 1;
 					addr_toRAM = IW[27:14];
 					data_toRAM = data_fromRAM * IW[13:0];
 					`INCPC;
@@ -183,6 +213,25 @@ always @ * begin
 					data_toRAM = data_fromRAM;
 					`INCPC;
 					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1010) begin // CPI (Copy Indirect)
+					addr_toRAM = data_fromRAM;
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b1011) begin // CPIi 	
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b1100) begin // BZJ (Branch on Zero)
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
+				end
+				if(data_fromRAM[31:28] == 4'b1101) begin // BZJi (Unconditional Branch)
+					R1N = data_fromRAM;
+					addr_toRAM = IW[13:0];
+					stN = 3'd3;
 				end
             end
 			3'd3: begin // S3 Execute Extended
@@ -226,6 +275,27 @@ always @ * begin
 					addr_toRAM = IW[27:14];
 					data_toRAM = (R1 * data_fromRAM);
 					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1010) begin // CPI (Copy Indirect)
+					addr_toRAM = IW[27:14];
+					data_toRAM = data_fromRAM;
+					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1011) begin // CPIi 	
+					wrEn = 1'b1;
+					addr_toRAM = R1;
+					data_toRAM = data_fromRAM;
+					`INCPC;
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1100) begin // BZJ (Branch on Zero)
+					PCN = (data_fromRAM == 0) ? R1 : (PC + 1);
+					stN = 3'd0;
+				end
+				if(data_fromRAM[31:28] == 4'b1101) begin // BZJi (Unconditional Branch)
+					PCN = R1 + data_fromRAM;
 					stN = 3'd0;
 				end
 			end
